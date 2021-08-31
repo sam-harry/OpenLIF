@@ -1,0 +1,87 @@
+\chapter{Post Processing} \label{chp:post}
+%
+\section{Introduction}
+\par
+At this stage, it should be noted that that the image data has been processed on the pixel scale.
+In pixel space, everything is (by design) sampled at integer locations.
+This is not the case in physical space.
+\par
+You may also choose to apply a homography to the entire image before applying the techniques in \S \ref{chp:proc}.
+If so, then these concepts need not be applied and the results from image processing may be converted directly to physical quantities.
+Doing the analysis that way has some limitations (slow to process) but can have some advantages (pixel column corresponds to a single lateral position).
+%
+\section{Homography}
+%
+In order to calculate the corresponding physical location from pixel space, introduce the homography defined by:
+%
+\begin{gather} 
+	\vec{x}'' = \boldsymbol{H}  \vec{p} \text{\quad ; \quad} \\
+	\vec{x}' = \frac{1}{z''} \vec{x}'' \text{\quad ; \quad} \\
+	\vec{x} = \boldsymbol{R} \vec{x}' \text{\quad ; \quad} \label{eqn:physical-data}
+\end{gather}
+%
+where
+%
+\begin{gather*}
+	\boldsymbol{H} =
+	\begin{bmatrix}
+	h_{11} & h_{21} & h_{31} \\
+	h_{12} & h_{22} & h_{32} \\
+	h_{13} & h_{23} & h_{33} \\
+	\end{bmatrix} \text{\quad ; \quad}
+	\boldsymbol{R} =
+	\begin{bmatrix}
+	\cos{\theta} & -\sin{\theta} & 0 \\
+	\sin{\theta} & \cos{\theta} & 0 \\
+	0 & 0 & 1 \\
+	\end{bmatrix} \text{\quad ; \quad} \\
+	\vec{p}= \begin{bmatrix} p \\ q \\ 1 \end{bmatrix} \text{\quad ; \quad}
+	\vec{x}'' = \begin{bmatrix} x'' \\ y'' \\ z'' \end{bmatrix} \text{\quad ; \quad}
+	\vec{x}' = \begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix} \text{\quad ; \quad}
+	\vec{x} = \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} \text{\quad ; \quad}
+\end{gather*}
+%
+in such a way that $[0,y,0]$ is parallel to $\vec{g}$. \par
+There is much to say about $\boldsymbol{H}$, but for practical purposes, it must be recognized that any given pixel column, i.e. $[p_0,q,1]$ for some given $p_0$, is generally not parallel to any other pixel column $[p_1,q,1]$ for some $p_1 \neq p_0$ and is generally not parallel to $\vec{g}$.
+This implication of this is that when the water surface is identified along any given pixel column $[p_0,q,1]$, the identified surface location varies in both the $x$ and $y$ direction.
+This means that the water surface is not sampled uniformly in space in either the vertical or lateral direction, except in the special case where the imaging plane is normal to gravity (practically challenging to achieve).
+Consequently, the lateral sampling location $x_0$ varies with the vertical sampling location $y_0$.
+The foregoing discussion is just a long winded way of saying that both the vertical and lateral sampling position must be accounted for through the analysis. \par
+The importance of $\boldsymbol{R}$ may be found by noting the accuracy of the imaging methods presented here are often more accurate than measurements taken with a ruler.
+As a result, the identified still water line may appear to have a linear trend, i.e. the reference grid used to calculate $\boldsymbol{H}$ may not be perfectly aligned with gravity.
+Indeed, the typical error in the Edwards Lab is 0.1mm per 300mm.
+Although this is small, it may be removed by finding $\boldsymbol{R}$ such that the measurements such that the linear trend is 0.
+It is difficult to imagine a better reference for horizontal than a still water surface.
+%
+\section{Re-Sampling}
+%
+Since the water surface has not been uniformly sampled in physical space, the overlapping physical region may have a different number of samples in either frame.
+To re-sample the data on a uniform grid, a few popular methods include nearest neighbor, linear interpolation, and cubic spline interpolation.
+These can all be achieved on an ``unstructured'' 2-D data set, like $\vec{x}$ in \eqref{eqn:physical-data}, using Qhull \url{http://www.qhull.org/} and its derivatives in scipy, matlab, mathematica, etc.
+Regardless of the method, it is useful to have uniformly sampled data.
+%
+\section{Spatial and Temporal Alignment}
+%
+In practice, it may be the case that data collected via precision imaging is more reliable than that measured with digital signal or a stick.
+The result is data collected from multiple trials may need a small adjustment to align the spatial and temporal axis.
+The functions provided find overlapping regions of the data and brute force check for a spatial and temporal offset that yield a better match for the overlapping regions.
+Multiple error metrics could be used as a similarity metric, but a simple average of the absolute differences seems to work well enough.
+%
+\section{Patching}
+Even with excellent spatial and temporal alignment, the overlapping region should be merged into a single measurement.
+Suppose that the data is sampled for the same duration with some overlapping region from $a$ to $b$ in space.
+Then, define two linear weighting functions
+%
+\begin{gather}
+	w_1 = \frac{1}{b-a} \left( x - a \right) \\
+	w_2 = \frac{-1}{b-a} \left( x - b \right) \\
+	w_1 + w_2 = 1
+\end{gather}
+%
+such that $\vec{x}_{new} \to \vec{x}_1$ as $x \to a$ and $\vec{x}_{new} \to \vec{x}_2$ as $x \to b$.
+This approach may be used to smooth the overlapping region $(a,b)$. Suppose that the data is sampled on $x_N$, then the surface may be smoothed with:
+%
+\begin{gather}
+	y_{new} = w_1 y_1 + w_2 y_2 \text{\quad where\quad} x_N \in (a, b)
+\end{gather}
+%
