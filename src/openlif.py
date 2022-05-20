@@ -127,7 +127,7 @@ def _get_mask_from_gradient(src: np.ndarray, k: int) -> np.ndarray :
   _, labels, centers = cv.kmeans(clusterable, k, labels, criteria, 1,
                                                 cv.KMEANS_USE_INITIAL_LABELS)
   
-  labels = labels.reshape(-1, src.shape[0])
+  labels = labels.reshape(src.shape[0],src.shape[1])
   # exclude the background label from a binary mask where the background label
   # has the smallest gradient value among the cluster centers, all other labels
   # are included. The background label can be identified by noting that the
@@ -183,7 +183,7 @@ def _get_mask_from_phase(src: np.ndarray, mask: np.ndarray,
   # compared to a simple binary threshold
   _, labels, centers = cv.kmeans(clusterable, 3, labels, criteria, 1,
                                     cv.KMEANS_USE_INITIAL_LABELS  )
-  labels = np.array(labels.reshape(-1, src.shape[0]), dtype=src.dtype)
+  labels = np.array(labels.reshape(src.shape[0],src.shape[1]), dtype=src.dtype)
   
   # To identify the low and high labels, must also identify the background
   # label which is assumed to be the largest group by count
