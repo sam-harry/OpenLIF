@@ -1,3 +1,6 @@
+# Macos temporary files
+.DS_Store
+
 # tmp files ending in ~
 *~
 

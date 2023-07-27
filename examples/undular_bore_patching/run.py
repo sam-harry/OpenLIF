@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 
 # or wherever the OpenLIF/src directory is
-sys.path.append('../../src')
+#sys.path.append('../../src')
 from openlif import lif as olif
 from openlif import find_homography, find_physical, \
                     find_interpolation, find_adjustment, \
@@ -110,8 +110,12 @@ def main():
   ymin = sorted( [ np.nanmin(y) for y in ydata ] )[0 ] - 1
   ymax = sorted( [ np.nanmax(y) for y in ydata ] )[-1] + 1
 
-  anim = list_sequence_animation(xdata, ydata,
+  try:
+    anim = list_sequence_animation(xdata, ydata,
            name='aligned_anim', xlims=(xmin,xmax), ylims=(ymin,ymax))
+  except (KeyError,ValueError) as e:
+    print('ffmpeg not available to write mp4, skiping animation')
+    plt.close()
 
   # merge data into a single data set
   tdata = [ data[loc]['ti'] for loc in locations ]
@@ -121,7 +125,7 @@ def main():
   time, space, elevation = list_merge_data(tdata,xdata,ydata)
 
   # apply a low pass filter on the spatial axis
-  window = signal.chebwin(151, at=100).reshape((1,-1))
+  window = scipy.signal.windows.chebwin(151, at=100).reshape((1,-1))
   window = window/np.sum(window)
   elevation = signal.convolve(elevation,window,mode='valid')
   q,r = divmod(space.shape[0]-elevation.shape[1],2)
@@ -133,8 +137,18 @@ def main():
   ymin = elevation.min() - 1
   ymax = elevation.max() + 1
 
-  anim = list_sequence_animation([space*dx], [elevation],
+  T,X = np.meshgrid(time*dt,space*dx,indexing='ij')
+  plt.pcolormesh(X,T,elevation)
+  plt.savefig(f'merged.png')
+  plt.close()
+
+  # try to write an animation if ffmpeg is installed
+  try:
+    anim = list_sequence_animation([space*dx], [elevation],
            name=f'merged_anim', xlims=(xmin,xmax), ylims=(ymin,ymax))
+  except (KeyError,ValueError) as e:
+    print('ffmpeg not available to write mp4, skipping animation')
+    plt.close()
 
 if __name__ == '__main__':
   main()

@@ -4,7 +4,7 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.append('../../src') # or wherever the src directory is
+#sys.path.append('../../src') # or wherever the src directory is
 from openlif import lif as olif
 from openlif import find_homography, find_physical, find_interpolation
 

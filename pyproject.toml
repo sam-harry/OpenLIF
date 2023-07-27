@@ -1,0 +1,8 @@
+[build-system]
+requires = [
+  "matplotlib",
+  "numpy",
+  "opencv-python",
+  "scipy",
+  "setuptools>=40.8.0", "wheel",
+]

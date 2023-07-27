@@ -5,8 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
-  # or wherever the src directory is
-  sys.path.append('../../src')
+  #sys.path.append('../../src')
   from openlif import lif as olif
   from openlif import find_homography, find_physical, find_interpolation
 

@@ -51,7 +51,13 @@ in the undular_bore_patching example if you use pip instead of conda.
 
 ## Usage
 
-Then add openlif.py to the working directory or add the src directory to your 
+You can install a local version from source, utilizing the provided `pyproject.toml` file
+
+```
+pip install .
+```
+
+alternatively add openlif.py to the working directory or add the src directory to your 
 python path, e.g.
 
 ```
